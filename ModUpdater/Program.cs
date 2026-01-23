@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.IO.Compression;
-using System.Linq;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 class Program
 {
@@ -18,14 +12,14 @@ class Program
 
     static async Task Main(string[] args)
     {
-        // Encoding settings remain to ensure special characters display correctly if present
         Console.OutputEncoding = Encoding.Unicode;
         Console.InputEncoding = Encoding.Unicode;
-        client.DefaultRequestHeaders.Add("User-Agent", "ModUpdater/3.0");
+
+        client.DefaultRequestHeaders.Add("User-Agent", "ModUpdater/4.0");
 
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("==========================================");
-        Console.WriteLine("        MINECRAFT MOD UPDATER");
+        Console.WriteLine("      MINECRAFT MOD UPDATER v1.1");
         Console.WriteLine("==========================================");
         Console.ResetColor();
 
@@ -105,9 +99,15 @@ class Program
             }
 
             bool success = false;
+
             if (projectId != null)
             {
-                success = await DownloadMod(projectId, targetVersion, loader, newFolder, modNameForSearch);
+                success = await DownloadModrinth(projectId, targetVersion, loader, newFolder, modNameForSearch);
+            }
+
+            if (!success)
+            {
+                success = await DownloadGitHub(modNameForSearch, targetVersion, newFolder);
             }
 
             if (!success)
@@ -126,7 +126,7 @@ class Program
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.WriteLine("                     WARNING! CRITICAL ALERT                      ");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"Game version: {targetVersion}. Versions mismatched for the following mods:");
+            Console.WriteLine($"Game version: {targetVersion}. Versions mismatched for these mods:");
             Console.WriteLine("------------------------------------------------------------------");
 
             foreach (var risk in riskyMods)
@@ -135,7 +135,7 @@ class Program
             }
 
             Console.WriteLine("------------------------------------------------------------------");
-            Console.WriteLine("The modpack might not start. Please check these mods manually.");
+            Console.WriteLine("Check these manually!");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.ResetColor();
         }
@@ -144,7 +144,7 @@ class Program
         {
             Console.WriteLine("\n------------------------------------------------");
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine($"Could not find {failedMods.Count} mods.");
+            Console.WriteLine($"Could not find {failedMods.Count} mods on Modrinth or GitHub.");
             Console.WriteLine("Open search on CurseForge in browser? (y/n)");
             Console.ResetColor();
 
@@ -166,7 +166,7 @@ class Program
         Console.ReadLine();
     }
 
-    static async Task<bool> DownloadMod(string projectId, string version, string loader, string outputDir, string modName)
+    static async Task<bool> DownloadModrinth(string projectId, string version, string loader, string outputDir, string modName)
     {
         try
         {
@@ -188,14 +188,13 @@ class Program
                 bestMatch = versions[0];
                 isRisky = true;
                 downloadedVersion = bestMatch["game_versions"][0].ToString();
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write($" [MISSING {version} -> {downloadedVersion}]");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write($" [Modrinth: MISSING {version} -> {downloadedVersion}]");
             }
             else
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(" [OK]");
+                Console.Write(" [Modrinth: OK]");
             }
 
             string dlUrl = bestMatch["files"][0]["url"].ToString();
@@ -207,17 +206,58 @@ class Program
             Console.ResetColor();
             Console.WriteLine();
 
-            if (isRisky)
-            {
-                riskyMods.Add($"{modName} (Found: {downloadedVersion})");
-            }
+            if (isRisky) riskyMods.Add($"{modName} (Modrinth: {downloadedVersion})");
 
             return true;
         }
-        catch
+        catch { return false; }
+    }
+
+    static async Task<bool> DownloadGitHub(string modName, string version, string outputDir)
+    {
+        try
         {
-            return false;
+            string query = $"{modName} minecraft mod";
+            string searchUrl = $"https://api.github.com/search/repositories?q={Uri.EscapeDataString(query)}&sort=stars&order=desc";
+
+            var searchJson = JsonNode.Parse(await client.GetStringAsync(searchUrl));
+            var items = searchJson["items"]?.AsArray();
+
+            if (items == null || items.Count == 0) return false;
+
+            string repoOwner = items[0]["owner"]["login"].ToString();
+            string repoName = items[0]["name"].ToString();
+
+            string releasesUrl = $"https://api.github.com/repos/{repoOwner}/{repoName}/releases/latest";
+            var releaseJson = JsonNode.Parse(await client.GetStringAsync(releasesUrl));
+
+            var assets = releaseJson["assets"]?.AsArray();
+            if (assets == null) return false;
+
+            foreach (var asset in assets)
+            {
+                string fName = asset["name"].ToString();
+
+                if (fName.EndsWith(".jar") && !fName.Contains("-sources") && !fName.Contains("-api"))
+                {
+                    string dlUrl = asset["browser_download_url"].ToString();
+
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write(" [GitHub: Found]");
+
+                    byte[] data = await client.GetByteArrayAsync(dlUrl);
+                    await File.WriteAllBytesAsync(Path.Combine(outputDir, fName), data);
+
+                    Console.ResetColor();
+                    Console.WriteLine();
+
+                    riskyMods.Add($"{modName} (Downloaded from GitHub - Check version manually!)");
+                    return true;
+                }
+            }
         }
+        catch { }
+        return false;
     }
 
     static string CalculateSha1(string path)
@@ -268,10 +308,6 @@ class Program
 
     static void OpenUrl(string url)
     {
-        try
-        {
-            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-        }
-        catch { }
+        try { Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true }); } catch { }
     }
 }
