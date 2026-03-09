@@ -85,14 +85,33 @@ class Program
 
             if (projectId == null)
             {
-                string searchUrl = $"https://api.modrinth.com/v2/search?query={modNameForSearch}&limit=1";
+                string searchUrl = $"https://api.modrinth.com/v2/search?query={Uri.EscapeDataString(modNameForSearch)}&limit=5";
                 try
                 {
                     var sMsg = await client.GetStringAsync(searchUrl);
                     var sNode = JsonNode.Parse(sMsg);
-                    if (sNode["hits"].AsArray().Count > 0)
+                    var hits = sNode["hits"].AsArray();
+
+                    if (hits.Count > 0)
                     {
-                        projectId = sNode["hits"][0]["project_id"].ToString();
+                        // 1. Exact slug match (best)
+                        JsonNode bestHit = hits.FirstOrDefault(h => h["slug"]?.ToString().Equals(modNameForSearch, StringComparison.OrdinalIgnoreCase) == true);
+
+                        // 2. First hit that explicitly lists support for the right loader in its categories
+                        if (bestHit == null)
+                        {
+                            bestHit = hits.FirstOrDefault(h =>
+                                h["categories"]?.AsArray().Any(c => c.ToString().Equals(loader, StringComparison.OrdinalIgnoreCase)) == true
+                            );
+                        }
+
+                        // 3. Fallback to the most relevant (first) result
+                        if (bestHit == null)
+                        {
+                            bestHit = hits[0];
+                        }
+
+                        projectId = bestHit["project_id"].ToString();
                     }
                 }
                 catch { }

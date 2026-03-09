@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModUpdater", "ModUpdater.csproj", "{4C84DABE-EC41-C83B-35DC-35802A812CEC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C84DABE-EC41-C83B-35DC-35802A812CEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C84DABE-EC41-C83B-35DC-35802A812CEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C84DABE-EC41-C83B-35DC-35802A812CEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C84DABE-EC41-C83B-35DC-35802A812CEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {60DC6CD3-E468-407E-81DE-D88F09E14BAB}
+	EndGlobalSection
+EndGlobal
