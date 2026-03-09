@@ -32,7 +32,7 @@ This tool helps you automatically update your Minecraft Java Edition mods to a n
 
 ### Important Notes
 
-*   **Not a 100% Guarantee**: This tool automates a complex process, but it might not find every single mod, especially if they are old, obscure, or exclusively available on CurseForge.
+*   **Not a 100% Guarantee**: This tool automates a complex process, but it might not find every single mod, especially if they are old, obscure.
 *   **Check Mismatched Mods**: Pay close attention to the final warning message. It will list all mods that were downloaded from GitHub or didn't have a perfect version match on Modrinth. You should verify these `.jar` files to ensure they are compatible with your game version before playing.
 *   **CurseForge**: This tool does not download files from CurseForge automatically due to their API policies. However, it helps you by opening search pages for any mods it couldn't find.
 *   **Safety**: The application interacts with the official APIs from Modrinth and GitHub. It **does not** modify your existing mods folder; it only creates a new one on your Desktop.
@@ -67,7 +67,7 @@ This tool helps you automatically update your Minecraft Java Edition mods to a n
 
 ### Важливі примітки
 
-*   **Без 100% гарантії**: Цей інструмент автоматизує складний процес, але він може не знайти абсолютно всі моди, особливо якщо вони старі, маловідомі або доступні виключно на CurseForge.
+*   **Без 100% гарантії**: Цей інструмент автоматизує складний процес, але він може не знайти абсолютно всі моди, особливо якщо вони старі.
 *   **Перевіряйте несумісні моди**: Зверніть особливу увагу на фінальне попередження. У ньому буде список усіх модів, завантажених з GitHub або тих, що не мали ідеальної відповідності версії на Modrinth. Ви повинні перевірити ці `.jar` файли, щоб переконатися, що вони сумісні з вашою версією гри, перш ніж грати.
 *   **CurseForge**: Цей інструмент не завантажує файли з CurseForge автоматично через політику їхнього API. Однак він допоможе вам, відкривши сторінки пошуку для будь-яких модів, які не вдалося знайти.
 *   **Безпека**: Програма взаємодіє з офіційними API Modrinth та GitHub. Вона **не змінює** вашу наявну папку з модами; вона лише створює нову на вашому робочому столі.
